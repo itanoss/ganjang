@@ -1,0 +1,16 @@
+subprojects {
+    group 'kr.itanoss'
+    version '0.1-SNAPSHOT'
+
+    apply plugin: 'java'
+    apply plugin: 'idea'
+
+    sourceCompatibility = 1.8
+
+    repositories {
+        mavenCentral()
+    }
+}
+
+
+apply plugin: 'idea'

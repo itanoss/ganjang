@@ -1,0 +1,12 @@
+
+plugins {
+    id 'net.ltgt.apt' version '0.11'
+    id 'idea'
+}
+
+dependencies {
+    apt project(':ganjang-compiler')
+    compile project(':ganjang')
+
+    testCompile 'junit:junit:4.+'
+}

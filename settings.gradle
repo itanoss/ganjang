@@ -1,0 +1,6 @@
+
+include 'ganjang'
+include 'ganjang-compiler'
+include 'ganjang-integration-test'
+
+rootProject.name = 'ganjang-parent'
