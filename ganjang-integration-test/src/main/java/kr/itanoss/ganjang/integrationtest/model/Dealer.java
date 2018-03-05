@@ -1,9 +1,7 @@
-package kr.itanoss.ganjang.integrationtest;
+package kr.itanoss.ganjang.integrationtest.model;
 
 import kr.itanoss.ganjang.ValidationException;
 import kr.itanoss.ganjang.Validator;
-import kr.itanoss.ganjang.integrationtest.model.Car;
-import kr.itanoss.ganjang.integrationtest.model.Car_Validator;
 
 public class Dealer {
 

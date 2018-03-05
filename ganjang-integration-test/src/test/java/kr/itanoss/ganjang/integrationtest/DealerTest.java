@@ -1,6 +1,7 @@
 package kr.itanoss.ganjang.integrationtest;
 
 import kr.itanoss.ganjang.integrationtest.model.Car;
+import kr.itanoss.ganjang.integrationtest.model.Dealer;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -12,12 +13,12 @@ public class DealerTest {
     private Dealer dealer;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         dealer = new Dealer();
     }
 
     @Test
-    public void testInspect() throws Exception {
+    public void testInspect() {
         Car value = new Car();
         value.modelName = "520d";
 
@@ -25,7 +26,7 @@ public class DealerTest {
     }
 
     @Test
-    public void testInspect_nullModelName() throws Exception {
+    public void testInspect_nullModelName() {
         Car value = new Car();
         // no setting model name
 

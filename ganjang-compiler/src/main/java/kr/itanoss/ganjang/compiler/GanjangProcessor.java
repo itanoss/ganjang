@@ -4,13 +4,15 @@ import com.google.auto.service.AutoService;
 import com.squareup.javapoet.*;
 import kr.itanoss.ganjang.NotNull;
 import kr.itanoss.ganjang.Valid;
-import kr.itanoss.ganjang.Validator;
 import kr.itanoss.ganjang.ValidationException;
+import kr.itanoss.ganjang.Validator;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.*;
-import javax.lang.model.util.ElementFilter;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
