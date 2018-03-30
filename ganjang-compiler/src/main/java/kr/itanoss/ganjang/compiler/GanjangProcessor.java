@@ -1,11 +1,14 @@
 package kr.itanoss.ganjang.compiler;
 
 import com.google.auto.service.AutoService;
-import com.squareup.javapoet.*;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeName;
 import kr.itanoss.ganjang.NotNull;
 import kr.itanoss.ganjang.Valid;
 import kr.itanoss.ganjang.ValidationException;
-import kr.itanoss.ganjang.Validator;
+import kr.itanoss.ganjang.compiler.input.TargetClass;
+import kr.itanoss.ganjang.compiler.output.ValidatorClass;
+import kr.itanoss.ganjang.compiler.output.ValidatorClassSourceCode;
 import kr.itanoss.ganjang.compiler.peripheral.CodeWriter;
 import kr.itanoss.ganjang.compiler.peripheral.MessageReporter;
 
@@ -21,15 +24,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static java.util.Arrays.asList;
+import static kr.itanoss.ganjang.compiler.Kong.typeName;
 
 @AutoService(Processor.class)
 public class GanjangProcessor extends AbstractProcessor {
 
-    public static final String POSTFIX = "_Validator";
     private Filer fileUtils;
     private Elements elementUtils;
     private MessageReporter reporter;
+    private CodeWriter writer;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
@@ -37,6 +40,7 @@ public class GanjangProcessor extends AbstractProcessor {
         this.elementUtils = processingEnv.getElementUtils();
         this.fileUtils = processingEnv.getFiler();
         this.reporter = new MessageReporter(processingEnv.getMessager());
+        this.writer = new CodeWriter(fileUtils, elements);
     }
 
     @Override
@@ -82,34 +86,20 @@ public class GanjangProcessor extends AbstractProcessor {
         fieldElements.stream()
                 .forEach(n -> builder.addStatement("shouldNotNull(target.$N)", n));
 
-        MethodSpec validateMethod = builder.build();
+        TargetClass targetClass = new TargetClass(element);
 
-        TypeSpec validatorClass = TypeSpec.classBuilder(qualifiedName + POSTFIX)
-                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                .addSuperinterfaces(asList(
-                        ParameterizedTypeName.get(className(Validator.class), elementTypeName)
-                )).addMethods(asList(validateMethod))
-                .build();
+        ValidatorClass validatorClass = new ValidatorClass(targetClass);
 
-        final JavaFile javaFile = JavaFile.builder(packageName, validatorClass).build();
-        final String filename = fullyQualifiedName + POSTFIX;
+        ValidatorClassSourceCode sourceCode = new ValidatorClassSourceCode(validatorClass, targetClass.getPackageName(elementUtils));
 
-        try(CodeWriter writer = new CodeWriter(fileUtils, filename)) {
-            writer.write(javaFile);
+        try {
+            writer.write(sourceCode);
         } catch (IOException e) {
             reporter.error(e.getLocalizedMessage());
             return false;
         }
 
         return true;
-    }
-
-    private TypeName typeName(Element element) {
-        return TypeName.get(element.asType());
-    }
-
-    private ClassName className(Class<?> clazz) {
-        return ClassName.get(clazz);
     }
 
     @Override

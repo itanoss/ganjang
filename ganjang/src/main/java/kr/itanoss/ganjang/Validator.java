@@ -8,4 +8,12 @@ public interface Validator<T> {
             throw new ValidationException();
         }
     }
+
+    default void shouldNotEmpty(String value) throws ValidationException {
+        shouldNotNull(value);
+
+        if(value.isEmpty()) {
+            throw new ValidationException();
+        }
+    }
 }
