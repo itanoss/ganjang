@@ -1,5 +1,7 @@
 # 간장 Ganjang
 
+[![Build Status](https://travis-ci.org/itanoss/ganjang.svg?branch=master)](https://travis-ci.org/itanoss/ganjang)
+
 *Ganjang* is Java Validation framework with **Annotation Processing** technology.
 
 ## Example
@@ -32,7 +34,7 @@ validator.validate(car);    // will throw a ValidationException
 
 ## TODO
 
- - [ ] Attach travis
+ - [v] Attach travis
  - [ ] Inflate basic validation rules: `NotEmpty`, `IsNumeric`, `SatisfiesRegex` and so on
  - [ ] Support custom validation annotation
  - [ ] Design complex validation logic
