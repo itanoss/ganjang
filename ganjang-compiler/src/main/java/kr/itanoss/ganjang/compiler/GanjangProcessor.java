@@ -6,17 +6,17 @@ import kr.itanoss.ganjang.NotNull;
 import kr.itanoss.ganjang.Valid;
 import kr.itanoss.ganjang.ValidationException;
 import kr.itanoss.ganjang.Validator;
+import kr.itanoss.ganjang.compiler.peripheral.CodeWriter;
+import kr.itanoss.ganjang.compiler.peripheral.MessageReporter;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
-import javax.tools.JavaFileObject;
 import java.io.IOException;
-import java.io.Writer;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -24,54 +24,65 @@ import java.util.stream.Collectors;
 import static java.util.Arrays.asList;
 
 @AutoService(Processor.class)
-@SupportedAnnotationTypes({
-        "kr.itanoss.ganjang.Valid"
-})
 public class GanjangProcessor extends AbstractProcessor {
 
     public static final String POSTFIX = "_Validator";
-    private Filer filer;
+    private Filer fileUtils;
     private Elements elementUtils;
-    private Messager messager;
+    private MessageReporter reporter;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
-        elementUtils = processingEnv.getElementUtils();
-        filer = processingEnv.getFiler();
-        messager = processingEnv.getMessager();
+        this.elementUtils = processingEnv.getElementUtils();
+        this.fileUtils = processingEnv.getFiler();
+        this.reporter = new MessageReporter(processingEnv.getMessager());
     }
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        for (Element annotatedElement : roundEnv.getElementsAnnotatedWith(Valid.class)) {
-            if(annotatedElement.getKind().isClass()) {
-                try {
-                    generateValidator(annotatedElement);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+        boolean processResult = roundEnv.getElementsAnnotatedWith(Valid.class).stream()
+                .filter(this::isClass)
+                .map(this::generateValidator)
+                .anyMatch(r -> !r);
 
-        return false;
+        return processResult;
     }
 
-    private void generateValidator(Element element) throws IOException {
+    private boolean isClass(Element e) {
+        boolean result = e.getKind().isClass();
+
+        if(!result) {
+            reporter.error(e, "Only classes can be annotated with @%s", Valid.class.getSimpleName());
+        }
+
+        return result;
+    }
+
+    private boolean generateValidator(Element element) {
         String qualifiedName = element.getSimpleName().toString();
         String packageName = elementUtils.getPackageOf(element).toString();
         String fullyQualifiedName = packageName + "." + qualifiedName;
         TypeName elementTypeName = typeName(element);
         List<String> fieldElements = elementUtils.getAllMembers((TypeElement) element)
                 .stream()
-                .filter(e -> e.getKind() == ElementKind.FIELD)
+                .filter(e -> e.getKind().isField())
                 .filter(e -> e.getAnnotation(NotNull.class) != null)
                 .filter(e -> e.getModifiers().contains(Modifier.PUBLIC))
                 .map(Element::getSimpleName)
                 .map(Object::toString)
                 .collect(Collectors.toList());
 
-        MethodSpec validateMethod = newValidateMethod(elementTypeName, fieldElements);
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("validate")
+                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                .addParameter(elementTypeName, "target")
+                .addException(ValidationException.class)
+                .returns(void.class);
+
+        fieldElements.stream()
+                .forEach(n -> builder.addStatement("shouldNotNull(target.$N)", n));
+
+        MethodSpec validateMethod = builder.build();
 
         TypeSpec validatorClass = TypeSpec.classBuilder(qualifiedName + POSTFIX)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
@@ -80,13 +91,17 @@ public class GanjangProcessor extends AbstractProcessor {
                 )).addMethods(asList(validateMethod))
                 .build();
 
-        JavaFile javaFile = JavaFile.builder(packageName, validatorClass).build();
+        final JavaFile javaFile = JavaFile.builder(packageName, validatorClass).build();
+        final String filename = fullyQualifiedName + POSTFIX;
 
-        JavaFileObject javaFileObject = filer.createSourceFile(fullyQualifiedName + POSTFIX);
-        Writer writer = javaFileObject.openWriter();
-        javaFile.writeTo(writer);
+        try(CodeWriter writer = new CodeWriter(fileUtils, filename)) {
+            writer.write(javaFile);
+        } catch (IOException e) {
+            reporter.error(e.getLocalizedMessage());
+            return false;
+        }
 
-        writer.close();
+        return true;
     }
 
     private TypeName typeName(Element element) {
@@ -97,17 +112,11 @@ public class GanjangProcessor extends AbstractProcessor {
         return ClassName.get(clazz);
     }
 
-    private MethodSpec newValidateMethod(TypeName elementTypeName, List<String> fieldNames) {
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("validate")
-                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                .addParameter(elementTypeName, "target")
-                .addException(ValidationException.class)
-                .returns(void.class);
-
-        fieldNames.stream()
-                .forEach(n -> builder.addStatement("shouldNotNull(target.$N)", n));
-
-        return builder.build();
+    @Override
+    public Set<String> getSupportedAnnotationTypes() {
+        HashSet<String> set = new HashSet<>();
+        set.add(Valid.class.getCanonicalName());
+        return set;
     }
 
     @Override
