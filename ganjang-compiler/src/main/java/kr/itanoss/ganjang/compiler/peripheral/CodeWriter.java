@@ -1,33 +1,30 @@
 package kr.itanoss.ganjang.compiler.peripheral;
 
 import com.squareup.javapoet.JavaFile;
+import kr.itanoss.ganjang.compiler.generation.GanjangGenerator;
+import kr.itanoss.ganjang.compiler.generation.model.ValidatorClass;
 
 import javax.annotation.processing.Filer;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
 
-public class CodeWriter implements AutoCloseable {
-    private final String filename;
+public class CodeWriter {
     private final Filer filer;
-    private final JavaFileObject fileObject;
-    private final Writer real;
+    private final GanjangGenerator generator;
 
-    public CodeWriter(Filer filer, String filename) throws IOException {
+    public CodeWriter(Filer filer, GanjangGenerator generator) {
         this.filer = filer;
-        this.filename = filename;
-        this.fileObject = filer.createSourceFile(filename);
-        this.real = this.fileObject.openWriter();
+        this.generator = generator;
     }
 
-    public void write(JavaFile file) throws IOException {
-        file.writeTo(real);
-    }
+    public void write(ValidatorClass validatorClass) throws IOException {
+        JavaFile content = generator.generate(validatorClass);
+        CharSequence fileName = validatorClass.getFileName();
 
-    @Override
-    public void close() throws IOException {
-        if(real != null) {
-            real.close();
+        JavaFileObject fileObject = filer.createSourceFile(fileName);
+        try (Writer writer = fileObject.openWriter()) {
+            content.writeTo(writer);
         }
     }
 }
