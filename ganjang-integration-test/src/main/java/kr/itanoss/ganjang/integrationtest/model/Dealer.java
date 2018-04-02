@@ -5,7 +5,7 @@ import kr.itanoss.ganjang.Validator;
 
 public class Dealer {
 
-    Validator<Car> carValidator = new Car_Validator();
+    private Validator<Car> carValidator = new kr.itanoss.ganjang.integrationtest.model.Car_Validator();
 
     public boolean inspect(Car car) {
         try {
