@@ -8,4 +8,5 @@ dependencies {
     compile project(':ganjang')
 
     testCompile 'junit:junit:4.+'
+    testCompile 'org.assertj:assertj-core:3.+'
 }

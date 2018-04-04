@@ -1,4 +1,4 @@
-package kr.itanoss.ganjang.integrationtest.model;
+package kr.itanoss.ganjang.integrationtest;
 
 import kr.itanoss.ganjang.NotNull;
 import kr.itanoss.ganjang.Valid;
@@ -7,4 +7,7 @@ import kr.itanoss.ganjang.Valid;
 public class Car {
     @NotNull
     public String modelName;
+
+    @NotNull
+    public Color color;
 }

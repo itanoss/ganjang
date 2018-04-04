@@ -35,6 +35,8 @@ validator.validate(car);    // will throw a ValidationException
 ## TODO
 
  - [x] Attach travis
+ - [ ] Support getter and setter
+ - [ ] Support private field
  - [ ] Inflate basic validation rules: `NotEmpty`, `IsNumeric`, `SatisfiesRegex` and so on
  - [ ] Support custom validation annotation
  - [ ] Design complex validation logic
