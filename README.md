@@ -1,6 +1,6 @@
 # 간장 Ganjang
 
-[![Build Status](https://travis-ci.org/itanoss/ganjang.svg?branch=master)](https://travis-ci.org/itanoss/ganjang)
+[![Build Status](https://travis-ci.org/itanoss/ganjang.svg?branch=master)](https://travis-ci.org/itanoss/ganjang) [![Quality Gate](https://sonarcloud.io/api/badges/gate?key=ganjang-parent)](https://sonarcloud.io/dashboard/index/ganjang-parent)
 
 *Ganjang* is Java Validation framework with **Annotation Processing** technology.
 
@@ -35,6 +35,7 @@ validator.validate(car);    // will throw a ValidationException
 ## TODO
 
  - [x] Attach travis
+ - [ ] Attach jacoco and sonarcloud
  - [ ] Support getter and setter
  - [ ] Support private field
  - [ ] Inflate basic validation rules: `NotEmpty`, `IsNumeric`, `SatisfiesRegex` and so on
